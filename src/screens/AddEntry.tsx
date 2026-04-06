@@ -1,9 +1,20 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, Alert, FlatList, ScrollView } from 'react-native';
 import { useMutation } from '@apollo/client';
 import { ADD_ENTRY, GET_ENTRIES } from '../api/queries';
 import { COLORS } from '../theme/colors';
-import { ChevronLeft, Search, Sparkles } from 'lucide-react-native';
+import { ChevronLeft, Search, Sparkles, Utensils } from 'lucide-react-native';
+
+const COMMON_DISHES = [
+  { name: 'Pepperoni Pizza', calories: 285 },
+  { name: 'Cheeseburger', calories: 550 },
+  { name: 'Caesar Salad', calories: 150 },
+  { name: 'Chicken Pasta', calories: 400 },
+  { name: 'Grilled Chicken', calories: 240 },
+  { name: 'Apple', calories: 95 },
+  { name: 'Sushi Roll', calories: 300 },
+  { name: 'Oatmeal', calories: 150 },
+];
 
 const AddEntry = ({ navigation }) => {
   const [foodName, setFoodName] = useState('');
@@ -20,26 +31,21 @@ const AddEntry = ({ navigation }) => {
     }
   });
 
+  const handleSelectDish = (dish) => {
+    setFoodName(dish.name);
+    setEstimatedCalories(dish.calories);
+  };
+
   const handleAnalyze = () => {
     if (!foodName) return;
     setAnalyzing(true);
     // Simulate AI analysis delay
     setTimeout(() => {
-      // Mock calorie lookup logic
-      const mocks = {
-        'pizza': 285,
-        'apple': 95,
-        'burger': 550,
-        'salad': 150,
-        'pasta': 400,
-        'chicken': 240,
-      };
-      
-      const found = mocks[foodName.toLowerCase()];
-      const kcal = found || Math.floor(Math.random() * (400 - 100 + 1) + 100);
+      const found = COMMON_DISHES.find(d => d.name.toLowerCase().includes(foodName.toLowerCase()));
+      const kcal = found ? found.calories : Math.floor(Math.random() * (400 - 100 + 1) + 100);
       setEstimatedCalories(kcal);
       setAnalyzing(false);
-    }, 1500);
+    }, 1200);
   };
 
   const handleSave = () => {
@@ -58,16 +64,16 @@ const AddEntry = ({ navigation }) => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <ChevronLeft color={COLORS.text} size={24} />
         </TouchableOpacity>
-        <Text style={styles.title}>Track Meal</Text>
+        <Text style={styles.title}>Add Food</Text>
       </View>
 
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.inputContainer}>
           <Text style={styles.label}>What did you eat?</Text>
           <View style={styles.inputWrapper}>
             <TextInput
               style={styles.input}
-              placeholder="e.g. Pepperoni Pizza"
+              placeholder="Enter food name..."
               placeholderTextColor={COLORS.textSecondary}
               value={foodName}
               onChangeText={(text) => {
@@ -80,25 +86,47 @@ const AddEntry = ({ navigation }) => {
         </View>
 
         {!estimatedCalories ? (
-          <TouchableOpacity
-            style={[styles.button, !foodName && styles.disabledButton]}
-            onPress={handleAnalyze}
-            disabled={!foodName || analyzing}
-          >
-            {analyzing ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <View style={styles.buttonInner}>
-                <Sparkles color="#fff" size={20} />
-                <Text style={styles.buttonText}>Analyze Calories</Text>
-              </View>
-            )}
-          </TouchableOpacity>
+          <View>
+            <TouchableOpacity
+              style={[styles.button, !foodName && styles.disabledButton]}
+              onPress={handleAnalyze}
+              disabled={!foodName || analyzing}
+            >
+              {analyzing ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <View style={styles.buttonInner}>
+                  <Sparkles color="#fff" size={20} />
+                  <Text style={styles.buttonText}>Get Calories</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            <View style={styles.suggestionSection}>
+                <Text style={styles.suggestionTitle}>Common Dishes</Text>
+                <View style={styles.dishGrid}>
+                    {COMMON_DISHES.map((dish, index) => (
+                        <TouchableOpacity 
+                            key={index} 
+                            style={styles.dishTag}
+                            onPress={() => handleSelectDish(dish)}
+                        >
+                            <Utensils size={14} color={COLORS.primary} style={{marginRight: 6}} />
+                            <Text style={styles.dishTagText}>{dish.name}</Text>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+            </View>
+          </View>
         ) : (
           <View style={styles.resultContainer}>
             <View style={styles.calorieBox}>
               <Text style={styles.resultLabel}>Estimated Calories</Text>
-              <Text style={styles.resultValue}>{estimatedCalories} kcal</Text>
+              <View style={styles.resultRow}>
+                <Text style={styles.resultValue}>{estimatedCalories}</Text>
+                <Text style={styles.resultUnit}>kcal</Text>
+              </View>
+              <Text style={styles.foodConfirmation}>{foodName}</Text>
             </View>
 
             <TouchableOpacity
@@ -109,7 +137,7 @@ const AddEntry = ({ navigation }) => {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.buttonText}>Log Meal</Text>
+                <Text style={styles.buttonText}>Log this meal</Text>
               )}
             </TouchableOpacity>
             
@@ -117,11 +145,11 @@ const AddEntry = ({ navigation }) => {
                 style={styles.retryButton}
                 onPress={() => setEstimatedCalories(null)}
             >
-                <Text style={styles.retryText}>Edit Search</Text>
+                <Text style={styles.retryText}>Edit Details</Text>
             </TouchableOpacity>
           </View>
         )}
-      </View>
+      </ScrollView>
     </View>
   );
 };
@@ -130,6 +158,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+  scrollContent: {
+    padding: 24,
+    paddingTop: 0,
   },
   header: {
     flexDirection: 'row',
@@ -149,11 +181,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.text,
   },
-  content: {
-    padding: 24,
-  },
   inputContainer: {
-    marginBottom: 32,
+    marginBottom: 24,
   },
   label: {
     fontSize: 16,
@@ -185,19 +214,12 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 32,
     elevation: 4,
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-  },
-  saveButton: {
-    backgroundColor: COLORS.success,
-    height: 56,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
   },
   buttonInner: {
     flexDirection: 'row',
@@ -209,34 +231,84 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginLeft: 10,
   },
-  disabledButton: {
-    opacity: 0.6,
+  suggestionSection: {
+      marginTop: 8,
+  },
+  suggestionTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: COLORS.text,
+      marginBottom: 16,
+  },
+  dishGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 10,
+  },
+  dishTag: {
+      backgroundColor: COLORS.surface,
+      borderColor: 'rgba(56, 189, 248, 0.2)',
+      borderWidth: 1,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderRadius: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+  },
+  dishTagText: {
+      color: COLORS.text,
+      fontSize: 14,
+      fontWeight: '500',
   },
   resultContainer: {
     alignItems: 'stretch',
   },
   calorieBox: {
-    backgroundColor: 'rgba(56, 189, 248, 0.1)',
+    backgroundColor: COLORS.surface,
     borderRadius: 24,
     padding: 32,
     alignItems: 'center',
     marginBottom: 32,
-    borderWidth: 2,
-    borderColor: COLORS.primary,
-    borderStyle: 'dashed',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
   },
   resultLabel: {
-    color: COLORS.primary,
+    color: COLORS.textSecondary,
     fontSize: 14,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 1.2,
+    fontWeight: '600',
+  },
+  resultRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginTop: 8,
   },
   resultValue: {
-    color: COLORS.text,
-    fontSize: 48,
+    color: COLORS.primary,
+    fontSize: 64,
     fontWeight: '800',
-    marginTop: 8,
+  },
+  resultUnit: {
+    color: COLORS.textSecondary,
+    fontSize: 20,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  foodConfirmation: {
+      color: COLORS.text,
+      fontSize: 18,
+      fontWeight: '600',
+      marginTop: 8,
+  },
+  saveButton: {
+    backgroundColor: COLORS.success,
+    height: 56,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
   retryButton: {
       alignItems: 'center',

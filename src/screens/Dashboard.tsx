@@ -1,12 +1,19 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
-import { useQuery } from '@apollo/client';
-import { GET_ENTRIES } from '../api/queries';
-import { COLORS } from '../theme/colors';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Plus, Flame, Calendar, Info } from 'lucide-react-native';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Dimensions,
+} from "react-native";
+import { useQuery } from "@apollo/client";
+import { GET_ENTRIES } from "../api/queries";
+import { COLORS } from "../theme/colors";
+import { LinearGradient } from "expo-linear-gradient";
+import { Plus, Flame, Calendar, Info } from "lucide-react-native";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 const Dashboard = ({ navigation }) => {
   const { loading, error, data } = useQuery(GET_ENTRIES, {
@@ -16,15 +23,17 @@ const Dashboard = ({ navigation }) => {
   const entries = data?.getEntries || [];
 
   const dailyCalories = entries
-    .filter(e => new Date(e.date).toDateString() === new Date().toDateString())
+    .filter(
+      (e) => new Date(e.date).toDateString() === new Date().toDateString(),
+    )
     .reduce((sum, e) => sum + e.calories, 0);
 
   const weeklyCalories = entries
-    .filter(e => {
-        const d = new Date(e.date);
-        const now = new Date();
-        const diff = (now - d) / (1000 * 60 * 60 * 24);
-        return diff <= 7;
+    .filter((e) => {
+      const d = new Date(e.date);
+      const now = new Date();
+      const diff = (now - d) / (1000 * 60 * 60 * 24);
+      return diff <= 7;
     })
     .reduce((sum, e) => sum + e.calories, 0);
 
@@ -33,7 +42,13 @@ const Dashboard = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Text style={styles.greeting}>Daily Intake</Text>
-          <Text style={styles.date}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</Text>
+          <Text style={styles.date}>
+            {new Date().toLocaleDateString("en-US", {
+              weekday: "long",
+              month: "short",
+              day: "numeric",
+            })}
+          </Text>
         </View>
 
         <LinearGradient
@@ -47,20 +62,25 @@ const Dashboard = ({ navigation }) => {
             <Text style={styles.summaryValue}>{dailyCalories}</Text>
             <Text style={styles.summarySub}>Target: 2,500 kcal</Text>
           </View>
-          <Flame color="#fff" size={48} opacity={0.3} style={styles.summaryIcon} />
+          <Flame
+            color="#fff"
+            size={48}
+            opacity={0.3}
+            style={styles.summaryIcon}
+          />
         </LinearGradient>
 
         <View style={styles.statsRow}>
-            <View style={styles.miniCard}>
-                <Calendar color={COLORS.primary} size={20} />
-                <Text style={styles.miniLabel}>Weekly</Text>
-                <Text style={styles.miniValue}>{weeklyCalories}</Text>
-            </View>
-            <View style={styles.miniCard}>
-                <Info color={COLORS.accent} size={20} />
-                <Text style={styles.miniLabel}>Entries</Text>
-                <Text style={styles.miniValue}>{entries.length}</Text>
-            </View>
+          <View style={styles.miniCard}>
+            <Calendar color={COLORS.primary} size={20} />
+            <Text style={styles.miniLabel}>Weekly</Text>
+            <Text style={styles.miniValue}>{weeklyCalories}</Text>
+          </View>
+          <View style={styles.miniCard}>
+            <Info color={COLORS.accent} size={20} />
+            <Text style={styles.miniLabel}>Entries</Text>
+            <Text style={styles.miniValue}>{entries.length}</Text>
+          </View>
         </View>
 
         <View style={styles.sectionHeader}>
@@ -68,19 +88,24 @@ const Dashboard = ({ navigation }) => {
         </View>
 
         {loading ? (
-            <Text style={styles.statusText}>Loading...</Text>
+          <Text style={styles.statusText}>Loading...</Text>
         ) : error ? (
-            <Text style={styles.statusText}>Error connecting to server</Text>
+          <Text style={styles.statusText}>Error connecting to server</Text>
         ) : entries.length === 0 ? (
-            <View style={styles.emptyState}>
-                <Text style={styles.emptyText}>No meals logged today</Text>
-            </View>
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyText}>No meals logged today</Text>
+          </View>
         ) : (
           entries.map((entry) => (
             <View key={entry.id} style={styles.mealCard}>
               <View>
                 <Text style={styles.foodName}>{entry.foodName}</Text>
-                <Text style={styles.mealTime}>{new Date(entry.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+                <Text style={styles.mealTime}>
+                  {new Date(entry.date).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </Text>
               </View>
               <Text style={styles.calories}>{entry.calories} kcal</Text>
             </View>
@@ -90,7 +115,7 @@ const Dashboard = ({ navigation }) => {
 
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => navigation.navigate('AddEntry')}
+        onPress={() => navigation.navigate("AddEntry")}
       >
         <Plus color="#fff" size={32} />
       </TouchableOpacity>
@@ -113,7 +138,7 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontSize: 28,
-    fontWeight: '800',
+    fontWeight: "800",
     color: COLORS.text,
   },
   date: {
@@ -124,9 +149,9 @@ const styles = StyleSheet.create({
   summaryCard: {
     borderRadius: 24,
     padding: 24,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 20,
     elevation: 8,
     shadowColor: COLORS.primary,
@@ -138,28 +163,28 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   summaryLabel: {
-    color: 'rgba(255,255,255,0.8)',
+    color: "rgba(255,255,255,0.8)",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   summaryValue: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 42,
-    fontWeight: '800',
+    fontWeight: "800",
     marginVertical: 4,
   },
   summarySub: {
-    color: 'rgba(255,255,255,0.7)',
+    color: "rgba(255,255,255,0.7)",
     fontSize: 14,
   },
   summaryIcon: {
-    position: 'absolute',
+    position: "absolute",
     right: 20,
     top: 20,
   },
   statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 24,
   },
   miniCard: {
@@ -168,7 +193,7 @@ const styles = StyleSheet.create({
     padding: 16,
     width: width * 0.43,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: "rgba(255,255,255,0.05)",
   },
   miniLabel: {
     color: COLORS.textSecondary,
@@ -178,7 +203,7 @@ const styles = StyleSheet.create({
   miniValue: {
     color: COLORS.text,
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
     marginTop: 2,
   },
   sectionHeader: {
@@ -186,23 +211,23 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.text,
   },
   mealCard: {
     backgroundColor: COLORS.surface,
     borderRadius: 16,
     padding: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: "rgba(255,255,255,0.05)",
   },
   foodName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.text,
   },
   mealTime: {
@@ -212,32 +237,32 @@ const styles = StyleSheet.create({
   },
   calories: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.primary,
   },
   statusText: {
     color: COLORS.textSecondary,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 20,
   },
   emptyState: {
     padding: 40,
-    alignItems: 'center',
+    alignItems: "center",
   },
   emptyText: {
     color: COLORS.textSecondary,
     fontSize: 16,
   },
   fab: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 30,
     right: 30,
     width: 64,
     height: 64,
     borderRadius: 32,
     backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     elevation: 8,
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
